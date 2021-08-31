@@ -7,34 +7,33 @@ import {
   SelectCoeff,
   SelectIncrease,
   SelectKeyLetter,
-} from "src/acts/SelectFields";
+} from "src/quotation/SelectFields";
 import { Box } from "rebass";
 import { SelectField } from "./SelectField";
-import { Act, useGetLinkedActs } from "src/api";
-import { generateId } from "src/utils/generateId";
+import { Quotation, useGetLinkedActs, LinkedActType } from "src/api";
 import { fetchAPI } from "src/utils/fetchAPI";
+import { sum } from "lodash";
 
-type Option = {
-  label: string;
-  value: string;
-};
+type FormLinkedQuotation = Omit<LinkedActType, "_id">;
 
-type LinkedActType = {
-  _id: string;
-  acts: (Option & Act)[];
-  cotations: { keyLetter: Option; coeff: Option; increase: Option }[];
-};
+function generateId(acts: Quotation[]) {
+  return acts
+    ?.map((a) => a._id)
+    .sort((a, b) => a.localeCompare(b))
+    .join("_");
+}
 
-export function LinkedAct() {
-  const { data: linkedActs = [], mutate } = useGetLinkedActs();
+export function LinkedQuotation() {
+  const { data: linkedQuotation = [], mutate } = useGetLinkedActs();
 
-  const addLinkedAct = async (values, { resetForm }) => {
+  const addLinkedAct = async (values: FormLinkedQuotation, { resetForm }) => {
     const linkedAddToAdd = {
       ...values,
-      _id: generateId({ ids: linkedActs?.map((a) => a._id) }),
+      _id: generateId(values.linkedQuotations),
     };
+    console.log({ linkedAddToAdd });
     mutate((as) => [linkedAddToAdd, ...as], false);
-    await fetchAPI("/infi/add/linked-acts", {
+    await fetchAPI("/infi/add/linked-quotation", {
       method: "POST",
       body: JSON.stringify(linkedAddToAdd),
     });
@@ -43,8 +42,8 @@ export function LinkedAct() {
   };
 
   const removeLinkedAct = async (linkedAct: LinkedActType) => {
-    mutate(linkedActs?.filter((act) => act._id !== linkedAct._id));
-    await fetchAPI("/infi/remove/linked-acts", {
+    mutate(linkedQuotation?.filter((act) => act._id !== linkedAct._id));
+    await fetchAPI("/infi/remove/linked-quotation", {
       method: "POST",
       body: JSON.stringify({ _id: linkedAct._id }),
     });
@@ -54,31 +53,38 @@ export function LinkedAct() {
   return (
     <Flex flexDirection="column">
       <Formik
-        initialValues={{ acts: [], cotations: [] }}
+        initialValues={
+          { linkedQuotations: [], quotations: [] } as FormLinkedQuotation
+        }
         onSubmit={addLinkedAct}
       >
         {({ values }) => (
           <Form>
-            <SelectField name="acts" isSearchable isClearable isMulti />
+            <SelectField
+              name="linkedQuotations"
+              isSearchable
+              isClearable
+              isMulti
+            />
             <Flex flexDirection="column" justifyContent="space-between">
-              <FieldArray name="cotations">
+              <FieldArray name="quotations">
                 {() => (
                   <div>
-                    {values.cotations?.map((_, index) => (
+                    {values.quotations?.map((_, index: number) => (
                       <Flex flexDirection="column" key={index} py={2}>
                         <Flex>
                           <SelectKeyLetter
-                            name={`cotations.${index}.keyLetter`}
+                            name={`quotations.${index}.keyLetter`}
                             placeholder="Lettre Cle"
                           />
                           <Box px={1} />
                           <SelectCoeff
-                            name={`cotations.${index}.coeff`}
+                            name={`quotations.${index}.coefficient`}
                             placeholder="Coeff"
                           />
                           <Box px={1} />
                           <SelectIncrease
-                            name={`cotations.${index}.increase`}
+                            name={`quotations.${index}.increase`}
                             placeholder="Majoration"
                           />
                         </Flex>
@@ -103,7 +109,7 @@ export function LinkedAct() {
         mt={3}
       />
 
-      <ListLinkedAct data={linkedActs} onDelete={removeLinkedAct} />
+      <ListLinkedAct data={linkedQuotation} onDelete={removeLinkedAct} />
     </Flex>
   );
 }
@@ -128,7 +134,7 @@ function ListLinkedAct({
           >
             <Flex flexDirection="column">
               <Flex>
-                {item.acts?.map((a) => (
+                {item.linkedQuotations?.map((a) => (
                   <Flex
                     key={a.value}
                     sx={{ backgroundColor: "#a8a7a7" }}
@@ -137,6 +143,7 @@ function ListLinkedAct({
                     mt={1}
                     mr={1}
                     fontSize={13}
+                    fontWeight="bold"
                   >
                     {a.label}
                   </Flex>
@@ -145,20 +152,28 @@ function ListLinkedAct({
 
               <Flex mt={1}>
                 <Flex>
-                  {item.acts
-                    ?.map((a) => `${a.keyLetter} ${a.coeff}`)
+                  {item.linkedQuotations
+                    ?.map((a) => `${a.keyLetter.label} ${a.coefficient.label}`)
                     .join(" + ")}
                 </Flex>
+                <Flex ml={2} sx={{ textDecoration: "line-through" }}>
+                  {getPrice(item.linkedQuotations)}€
+                </Flex>
+
                 <Flex mx={2}>{" => "}</Flex>
+
                 <Flex color="blue">
-                  {item.cotations
+                  {item.quotations
                     ?.map((a) =>
                       a.keyLetter?.label
-                        ? `${a.keyLetter?.label} ${a.coeff?.label}`
+                        ? `${a.keyLetter?.label} ${a.coefficient?.label}`
                         : ""
                     )
                     ?.filter(Boolean)
                     .join(" + ")}
+                </Flex>
+                <Flex ml={2} color="red">
+                  {getPrice(item.quotations)}€
                 </Flex>
               </Flex>
             </Flex>
@@ -171,5 +186,11 @@ function ListLinkedAct({
         </>
       ))}
     </Flex>
+  );
+}
+
+function getPrice(quotations: Quotation[]) {
+  return sum(
+    quotations?.map((c) => c.keyLetter?.unitPrice + c.coefficient?.value)
   );
 }

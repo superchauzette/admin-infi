@@ -3,8 +3,11 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import { AppShell } from "./app-shell/AppShell";
 import { Login } from "./auth/Login";
-import { Acts } from "./acts/Acts";
-import { LinkedAct } from "./linked-act/LinkedAct";
+import { Quotation } from "./quotation/Quotation";
+import { LinkedQuotation } from "./linked-quotation/LinkedQuotation";
+import { KeyLetter } from "./key-letter/KeyLetter";
+import { Coefficient } from "./coefficient/Coefficient";
+import { Increase } from "./increase/Increase";
 
 function App() {
   return (
@@ -15,12 +18,21 @@ function App() {
         </Route>
         <AppShell>
           <Switch>
+            <Route path="/increase">
+              <Increase />
+            </Route>
+            <Route path="/coefficient">
+              <Coefficient />
+            </Route>
+            <Route path="/key-letter">
+              <KeyLetter />
+            </Route>
             <Route path="/linked-act">
-              <LinkedAct />
+              <LinkedQuotation />
             </Route>
             <Route path="/decision">Arbre de decision</Route>
             <Route path="/" exact>
-              <Acts />
+              <Quotation />
             </Route>
           </Switch>
         </AppShell>

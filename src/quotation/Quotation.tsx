@@ -4,32 +4,28 @@ import { Button, Divider } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
 import IconButton from "@material-ui/core/IconButton";
 import { fetchAPI } from "src/utils/fetchAPI";
-import { useGetActs, Act } from "../api";
+import { useGetQuotation, Quotation as QuotationType } from "../api";
 import { SelectKeyLetter, SelectCoeff, SelectIncrease } from "./SelectFields";
-import { generateId } from "../utils/generateId";
+import { v4 as uuidv4 } from "uuid";
 
-export function Acts() {
-  const { data: acts = [], mutate } = useGetActs();
+export function Quotation() {
+  const { data: quotations = [], mutate } = useGetQuotation();
 
-  const addCareNomenclature = async (values: any) => {
-    const careToAdd = {
-      _id: generateId({ ids: acts?.map((a) => a._id) }),
-      coeff: values.coeff?.value,
-      increase: values.increase?.value,
-      keyLetter: values.keyLetter?.value,
-      title: values.title,
-    };
+  const addCareNomenclature = async (values: any, { resetForm }) => {
+    const _id = uuidv4();
+    const careToAdd = { _id, increase: {}, ...values };
     mutate((as) => [careToAdd, ...as], false);
-    await fetchAPI("/infi/add/carenomenclature", {
+    await fetchAPI("/infi/add/quotation", {
       method: "POST",
       body: JSON.stringify(careToAdd),
     });
     await mutate();
+    resetForm();
   };
 
-  const removeCareNomenclature = async (a: Act) => {
-    mutate(acts?.filter((act) => act._id !== a._id));
-    await fetchAPI("/infi/remove/carenomenclature", {
+  const removeCareNomenclature = async (a: QuotationType) => {
+    mutate(quotations?.filter((act) => act._id !== a._id));
+    await fetchAPI("/infi/remove/quotation", {
       method: "POST",
       body: JSON.stringify({ _id: a._id }),
     });
@@ -38,12 +34,9 @@ export function Acts() {
 
   return (
     <Flex flexDirection="column">
-      <FormActs
-        initialValues={{ title: "", keyLetter: "", coeff: "" }}
-        onSubmit={addCareNomenclature}
-      />
+      <FormActs initialValues={{}} onSubmit={addCareNomenclature} />
       <Divider />
-      <ListActs acts={acts} onDelete={removeCareNomenclature} />
+      <ListActs quotations={quotations} onDelete={removeCareNomenclature} />
     </Flex>
   );
 }
@@ -53,7 +46,7 @@ function FormActs({ initialValues, onSubmit }) {
     <Formik initialValues={initialValues} onSubmit={onSubmit}>
       <Form>
         <Flex flexDirection="column">
-          <TextField label="Nom du soin" name="title" width="400px" />
+          <TextField label="Nom du soin" name="name" width="400px" />
           <Flex
             flex={1}
             justifyContent="space-between"
@@ -62,7 +55,7 @@ function FormActs({ initialValues, onSubmit }) {
             alignItems="flex-end"
           >
             <SelectKeyLetter name="keyLetter" />
-            <SelectCoeff name="coeff" />
+            <SelectCoeff name="coefficient" />
             <SelectIncrease name="increase" />
             <Box>
               <Button variant="contained" color="primary" type="submit">
@@ -76,17 +69,17 @@ function FormActs({ initialValues, onSubmit }) {
   );
 }
 
-function ListActs({ acts, onDelete }) {
+function ListActs({ quotations, onDelete }) {
   return (
     <Flex flexDirection="column" mt={2}>
-      {acts?.map((act) => (
+      {quotations?.map((quotation) => (
         <Flex
-          key={act.title}
+          key={quotation._id}
           alignItems="center"
           justifyContent="space-between"
         >
           <Flex alignItems="center">
-            <Text>{act.title}</Text>
+            <Text>{quotation.name}</Text>
             <div>
               <Flex
                 sx={{ borderRadius: 10, backgroundColor: "#2c7ae0" }}
@@ -97,12 +90,12 @@ function ListActs({ acts, onDelete }) {
                 color="white"
                 fontWeight="bold"
               >
-                {act.keyLetter} {act.coeff}
+                {quotation.keyLetter?.label} {quotation.coefficient?.value}
               </Flex>
             </div>
           </Flex>
 
-          <IconButton aria-label="delete" onClick={() => onDelete(act)}>
+          <IconButton aria-label="delete" onClick={() => onDelete(quotation)}>
             <DeleteIcon />
           </IconButton>
         </Flex>

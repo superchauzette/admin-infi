@@ -9,7 +9,7 @@ import { getLocalStorageUser } from "src/utils/localStorage";
 export function AppShell({ children }) {
   return (
     <Box display="flex" width="100%">
-      <Box width="200px" height="100vh" position="fixed">
+      <Box width="215px" height="100vh" position="fixed">
         <Box
           display="flex"
           height="100%"
@@ -26,9 +26,13 @@ export function AppShell({ children }) {
             <img src={logo} alt="logo" width="100%" />
           </Box>
 
-          <MenuLink to="/">Liste d'acts</MenuLink>
-          <MenuLink to="/linked-act">Association act</MenuLink>
+          <MenuLink to="/">Liste des cotations</MenuLink>
+          <MenuLink to="/linked-act">Association de cotations</MenuLink>
           <MenuLink to="/decision">Arbre de décision</MenuLink>
+
+          <MenuLink to="/key-letter">Lettre Clé</MenuLink>
+          <MenuLink to="/coefficient">Coefficient</MenuLink>
+          <MenuLink to="/increase">Majoration</MenuLink>
 
           <Flex
             flexDirection="column"
