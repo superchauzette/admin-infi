@@ -8,6 +8,8 @@ export function SelectField({ name, ...props }) {
 
   const { data: quotations } = useGetQuotation();
 
+  console.log({ quotations });
+
   return (
     <Select
       value={field.value}

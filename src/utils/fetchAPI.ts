@@ -5,7 +5,8 @@ import {
   setRefreshToken,
 } from "./localStorage";
 
-const baseURL = "http://localhost:3000";
+const baseURL =
+  "https://t5gj8q0b96.execute-api.us-east-1.amazonaws.com/staging";
 
 export const fetchAPI = async (url: string, options: RequestInit) => {
   const token = getLocalStorageAccessToken();
