@@ -2,11 +2,14 @@
   "name": "admin-infi",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://superchauzette.github.io/admin-infi",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "yarn build",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
     "@emotion/react": "^11.4.0",
@@ -20,6 +23,7 @@
     "@types/react-select": "^4.0.17",
     "emotion-theming": "^11.0.0",
     "formik": "^2.2.9",
+    "gh-pages": "^3.2.3",
     "lodash": "^4.17.21",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
